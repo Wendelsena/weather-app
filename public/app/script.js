@@ -53,6 +53,43 @@ async function searchCountries() {
 
   countrySuggestions.innerHTML = '';
 
+  if (
+    value.toLowerCase() ===
+    'nicollas vicctor'
+  ) {
+
+    const li =
+      document.createElement('li');
+
+    li.textContent =
+      'Gostoso amor da minha vida';
+
+    li.addEventListener('click', () => {
+
+      countryInput.value =
+        'Nicollas Vicctor';
+
+      countrySuggestions.innerHTML = '';
+
+
+      document.getElementById('city').textContent =
+        'Gostoso amor da minha vida';
+
+      document.getElementById('temp').textContent =
+        '∞°C';
+
+      document.getElementById('humidity').textContent =
+        '9999%';
+
+      document.getElementById('description').textContent =
+        'Eu amo você ❤️';
+    });
+
+    countrySuggestions.appendChild(li);
+
+    return;
+  }
+
   if (value.length < 1) return;
 
   try {
@@ -65,7 +102,6 @@ async function searchCountries() {
       await response.json();
 
     if (!data.results) return;
-
 
     const uniqueCountries =
       [];
@@ -88,7 +124,6 @@ async function searchCountries() {
       }
     });
 
-
     uniqueCountries.forEach(country => {
 
       const li =
@@ -103,8 +138,6 @@ async function searchCountries() {
           country;
 
         countrySuggestions.innerHTML = '';
-
-        // LIMPA CIDADES AO TROCAR PAÍS
 
         cityInput.value = '';
 
@@ -233,12 +266,6 @@ async function searchCities() {
   }
 }
 
-
-
-// =========================
-// BUSCA CLIMA
-// =========================
-
 async function getWeather(
   latitude,
   longitude,
@@ -266,8 +293,6 @@ async function getWeather(
     let description =
       'Clima desconhecido';
 
-    // DESCRIÇÃO CLIMA
-
     if (weatherCode === 0) {
 
       description = 'Céu limpo';
@@ -291,8 +316,6 @@ async function getWeather(
         'Clima instável';
     }
 
-    // ATUALIZA HTML
-
     document.getElementById('city').textContent =
       cityName;
 
@@ -314,10 +337,4 @@ async function getWeather(
   }
 }
 
-
-
-// =========================
-// INICIAL
-// =========================
-
-getWeather()
+getWeather();
