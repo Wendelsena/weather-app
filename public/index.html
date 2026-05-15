@@ -1,52 +1,103 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  />
 
   <title>Weather App</title>
 
-  <link rel="stylesheet" href="app/style.css" />
+  <link
+    rel="stylesheet"
+    href="app/style.css"
+  />
+
 </head>
+
 <body>
+
+
+  <div class="country-wrapper">
+
+    <input
+      type="text"
+      id="country-input"
+      placeholder="País"
+      autocomplete="off"
+    />
+
+    <ul id="country-suggestions"></ul>
+
+  </div>
+
+
 
   <main class="container">
 
+
     <div class="clock-box">
-      <h1 id="clock">00:00:00</h1>
-      <p id="date">Carregando data...</p>
+
+      <h1 id="clock">
+        00:00:00
+      </h1>
+
     </div>
+
+
 
     <div class="search-box">
 
-    <input
+      <input
         type="text"
         id="city-input"
         placeholder="Digite uma cidade"
-    />
-
-    <button id="search-btn">
-        Buscar
-    </button>
+        autocomplete="off"
+      />
 
     </div>
 
+
+    <ul id="suggestions"></ul>
+
+
     <div class="weather-box">
-      <h2 id="city">Itu, SP</h2>
+
+      <h2 id="city">
+        Cidade
+      </h2>
 
       <div class="temperature">
-        <span id="temp">--°C</span>
+
+        <span id="temp">
+          --°C
+        </span>
+
       </div>
 
-      <p id="description">Carregando clima...</p>
+      <p id="description">
+        Carregando...
+      </p>
 
       <div class="details">
-        <p>Umidade: <span id="humidity">--%</span></p>
+
+        <p>
+          Umidade:
+          <span id="humidity">
+            --%
+          </span>
+        </p>
+
       </div>
+
     </div>
 
   </main>
 
   <script src="app/script.js"></script>
+
 </body>
 </html>

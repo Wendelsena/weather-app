@@ -2,64 +2,271 @@ function updateClock() {
 
   const now = new Date();
 
-  const hours = String(now.getHours()).padStart(2, '0');
+  const hours =
+    String(now.getHours()).padStart(2, '0');
 
-  const minutes = String(now.getMinutes()).padStart(2, '0');
+  const minutes =
+    String(now.getMinutes()).padStart(2, '0');
 
-  const seconds = String(now.getSeconds()).padStart(2, '0');
+  const seconds =
+    String(now.getSeconds()).padStart(2, '0');
 
-  const time = `${hours}:${minutes}:${seconds}`;
-
-  document.getElementById('clock').textContent = time;
+  document.getElementById('clock').textContent =
+    `${hours}:${minutes}:${seconds}`;
 }
 
 setInterval(updateClock, 1000);
 
 updateClock();
 
-async function getWeather(city = 'Itu') {
+const cityInput =
+  document.getElementById('city-input');
+
+const countryInput =
+  document.getElementById('country-input');
+
+const suggestions =
+  document.getElementById('suggestions');
+
+const countrySuggestions =
+  document.getElementById(
+    'country-suggestions'
+  );
+
+let countryDebounce;
+
+countryInput.addEventListener(
+  'input',
+  () => {
+
+    clearTimeout(countryDebounce);
+
+    countryDebounce =
+      setTimeout(searchCountries, 300);
+  }
+);
+
+async function searchCountries() {
+
+  const value =
+    countryInput.value.trim();
+
+  countrySuggestions.innerHTML = '';
+
+  if (value.length < 1) return;
 
   try {
 
-    // BUSCA COORDENADAS DA CIDADE
-
-    const geoResponse = await fetch(
-      `https://geocoding-api.open-meteo.com/v1/search?name=${city}&count=1&language=pt&format=json`
+    const response = await fetch(
+      `https://geocoding-api.open-meteo.com/v1/search?name=${value}&count=15&language=pt&format=json`
     );
 
-    const geoData = await geoResponse.json();
+    const data =
+      await response.json();
 
-    if (!geoData.results) {
+    if (!data.results) return;
 
-      alert('Cidade não encontrada');
 
-      return;
+    const uniqueCountries =
+      [];
+
+    const countrySet =
+      new Set();
+
+    data.results.forEach(location => {
+
+      if (
+        location.country &&
+        !countrySet.has(location.country)
+      ) {
+
+        countrySet.add(location.country);
+
+        uniqueCountries.push(
+          location.country
+        );
+      }
+    });
+
+
+    uniqueCountries.forEach(country => {
+
+      const li =
+        document.createElement('li');
+
+      li.textContent =
+        country;
+
+      li.addEventListener('click', () => {
+
+        countryInput.value =
+          country;
+
+        countrySuggestions.innerHTML = '';
+
+        // LIMPA CIDADES AO TROCAR PAÍS
+
+        cityInput.value = '';
+
+        suggestions.innerHTML = '';
+      });
+
+      countrySuggestions.appendChild(li);
+    });
+
+  } catch (error) {
+
+    console.error(
+      'Erro ao buscar países:',
+      error
+    );
+  }
+}
+
+let cityDebounce;
+
+cityInput.addEventListener(
+  'input',
+  () => {
+
+    clearTimeout(cityDebounce);
+
+    cityDebounce =
+      setTimeout(searchCities, 400);
+  }
+);
+
+async function searchCities() {
+
+  const city =
+    cityInput.value.trim();
+
+  const country =
+    countryInput.value.trim();
+
+  suggestions.innerHTML = '';
+
+  if (city.length < 2) return;
+
+  try {
+
+    const response = await fetch(
+      `https://geocoding-api.open-meteo.com/v1/search?name=${city}&count=20&language=pt&format=json`
+    );
+
+    const data =
+      await response.json();
+
+    if (!data.results) return;
+
+    let results =
+      data.results;
+
+    if (country !== '') {
+
+      results =
+        results.filter(location =>
+
+          location.country &&
+          location.country
+            .toLowerCase() ===
+          country.toLowerCase()
+        );
     }
 
-    const location = geoData.results[0];
+    const uniqueCities =
+      [];
 
-    const latitude = location.latitude;
+    const citySet =
+      new Set();
 
-    const longitude = location.longitude;
+    results.forEach(location => {
 
-    const cityName = location.name;
+      const region =
+        location.admin1 || '';
 
-    const weatherResponse = await fetch(
+      const key =
+        `${location.name}-${region}-${location.country}`;
+
+      if (!citySet.has(key)) {
+
+        citySet.add(key);
+
+        uniqueCities.push(location);
+      }
+    });
+
+    uniqueCities.forEach(location => {
+
+      const li =
+        document.createElement('li');
+
+      const region =
+        location.admin1 || '';
+
+      li.textContent =
+        `${location.name} - ${region} (${location.country})`;
+
+      li.addEventListener('click', () => {
+
+        cityInput.value =
+          location.name;
+
+        suggestions.innerHTML = '';
+
+        getWeather(
+          location.latitude,
+          location.longitude,
+          location.name
+        );
+      });
+
+      suggestions.appendChild(li);
+    });
+
+  } catch (error) {
+
+    console.error(
+      'Erro ao buscar cidades:',
+      error
+    );
+  }
+}
+
+
+
+// =========================
+// BUSCA CLIMA
+// =========================
+
+async function getWeather(
+  latitude,
+  longitude,
+  cityName
+) {
+
+  try {
+
+    const response = await fetch(
       `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,weather_code`
     );
 
-    const weatherData = await weatherResponse.json();
+    const data =
+      await response.json();
 
     const temperature =
-      weatherData.current.temperature_2m;
+      data.current.temperature_2m;
 
     const humidity =
-      weatherData.current.relative_humidity_2m;
+      data.current.relative_humidity_2m;
 
     const weatherCode =
-      weatherData.current.weather_code;
+      data.current.weather_code;
 
-    let description = 'Clima desconhecido';
+    let description =
+      'Clima desconhecido';
+
+    // DESCRIÇÃO CLIMA
 
     if (weatherCode === 0) {
 
@@ -67,7 +274,8 @@ async function getWeather(city = 'Itu') {
 
     } else if (weatherCode <= 3) {
 
-      description = 'Parcialmente nublado';
+      description =
+        'Parcialmente nublado';
 
     } else if (weatherCode <= 48) {
 
@@ -79,8 +287,11 @@ async function getWeather(city = 'Itu') {
 
     } else {
 
-      description = 'Clima instável';
+      description =
+        'Clima instável';
     }
+
+    // ATUALIZA HTML
 
     document.getElementById('city').textContent =
       cityName;
@@ -96,27 +307,17 @@ async function getWeather(city = 'Itu') {
 
   } catch (error) {
 
-    console.error(error);
-
-    alert('Erro ao buscar clima');
+    console.error(
+      'Erro ao buscar clima:',
+      error
+    );
   }
 }
 
 
-const searchBtn =
-  document.getElementById('search-btn');
 
-searchBtn.addEventListener('click', () => {
+// =========================
+// INICIAL
+// =========================
 
-  const cityInput =
-    document.getElementById('city-input');
-
-  const city = cityInput.value;
-
-  if (city.trim() !== '') {
-
-    getWeather(city);
-  }
-});
-
-getWeather();
+getWeather()
